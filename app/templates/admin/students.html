@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h3 class="mb-0">Students</h3>
+	<a class="btn btn-outline-light btn-sm" href="/admin/dashboard">Back to Dashboard</a>
+</div>
+<div class="card p-3">
+	<table class="table table-sm align-middle text-white">
+		<thead><tr><th>Name</th><th>Email</th><th>Department</th><th>CGPA</th><th>Income</th><th>Applications</th></tr></thead>
+		<tbody>
+			{% for s in items %}
+			<tr>
+				<td>{{ s.name }}</td>
+				<td>{{ s.email }}</td>
+				<td>{{ s.department or '-' }}</td>
+				<td>{{ s.cgpa or '-' }}</td>
+				<td>{{ s.family_income or '-' }}</td>
+				<td>{{ s.applications|length }}</td>
+			</tr>
+			{% else %}
+			<tr><td colspan="6" class="text-center">No students</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
+
+
+
