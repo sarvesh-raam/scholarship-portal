@@ -1,0 +1,149 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+	<h3 class="mb-0">Admin Dashboard</h3>
+	<a class="btn btn-primary" href="/admin/scholarships">Add Scholarship</a>
+</div>
+<div class="row g-3" id="kpi-cards">
+	<div class="col-md-3">
+		<a href="/admin/students" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
+			<div class="fs-1">{{ total_students }}</div>
+			<div class="text-muted">Students</div>
+		</a>
+	</div>
+	<div class="col-md-3">
+		<a href="/admin/applications?status=pending" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
+			<div class="fs-1">{{ pending }}</div>
+			<div class="text-muted">Pending</div>
+		</a>
+	</div>
+	<div class="col-md-3">
+		<a href="/admin/applications?status=approved" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
+			<div class="fs-1">{{ approved }}</div>
+			<div class="text-muted">Approved</div>
+		</a>
+	</div>
+	<div class="col-md-3">
+		<a href="/admin/applications?status=rejected" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
+			<div class="fs-1">{{ rejected }}</div>
+			<div class="text-muted">Rejected</div>
+		</a>
+	</div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-1">
+	<h6 class="mb-0">Pending Applications (Quick Actions)</h6>
+	<a class="btn btn-sm btn-outline-light" href="/admin/applications">Open All</a>
+</div>
+<div class="card p-3 mb-3">
+	<table class="table table-sm align-middle mb-0 text-white">
+		<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>CGPA</th><th>Income Proof</th><th>Govt ID</th><th>Decide</th></tr></thead>
+		<tbody>
+			{% for a in pending_items %}
+			<tr>
+				<td>{{ a.application_id }}</td>
+				<td>{{ a.student.name }}</td>
+				<td>{{ a.scholarship.name }}</td>
+				<td>{{ a.cgpa_value or '-' }}</td>
+				<td>
+					{% if a.income_proof_path %}
+						{% if a.income_proof_path|is_pdf %}
+							<a href="{{ a.income_proof_path|upload_url }}" target="_blank">PDF</a>
+						{% else %}
+							<img src="{{ a.income_proof_path|upload_url }}" style="height:40px" />
+						{% endif %}
+					{% else %}-{% endif %}
+				</td>
+				<td>
+					{% if a.govt_id_path %}
+						{% if a.govt_id_path|is_pdf %}
+							<a href="{{ a.govt_id_path|upload_url }}" target="_blank">PDF</a>
+						{% else %}
+							<img src="{{ a.govt_id_path|upload_url }}" style="height:40px" />
+						{% endif %}
+					{% else %}-{% endif %}
+				</td>
+				<td style="width:320px">
+					<form class="d-flex gap-2" method="post" action="/admin/applications/{{ a.application_id }}/decision">
+						<input class="form-control form-control-sm" name="remarks" placeholder="Remarks" />
+						<select class="form-select form-select-sm" name="status">
+							<option value="approved">Approve</option>
+							<option value="rejected">Reject</option>
+						</select>
+						<button class="btn btn-sm btn-primary">Save</button>
+					</form>
+				</td>
+			</tr>
+			{% else %}
+			<tr><td colspan="7" class="text-center">No pending applications</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div class="row g-3 mt-1">
+	<div class="col-md-6">
+		<div class="card p-3">
+			<h6>Scholarship Type Distribution</h6>
+			<canvas id="pie"></canvas>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card p-3">
+			<h6>Applications per Department</h6>
+			<canvas id="bar"></canvas>
+		</div>
+	</div>
+</div>
+<div class="row g-3 mt-1">
+	<div class="col-md-6">
+		<div class="card p-3">
+			<h6>Recently Approved</h6>
+			<table class="table table-sm mb-0 text-white">
+				<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>Date</th></tr></thead>
+				<tbody>
+					{% for a in approved_items %}
+					<tr>
+						<td>{{ a.application_id }}</td>
+						<td>{{ a.student.name }}</td>
+						<td>{{ a.scholarship.name }}</td>
+						<td>{{ a.submitted_date.strftime('%Y-%m-%d') }}</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="4" class="text-center">None</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card p-3">
+			<h6>Recently Rejected</h6>
+			<table class="table table-sm mb-0 text-white">
+				<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>Date</th></tr></thead>
+				<tbody>
+					{% for a in rejected_items %}
+					<tr>
+						<td>{{ a.application_id }}</td>
+						<td>{{ a.student.name }}</td>
+						<td>{{ a.scholarship.name }}</td>
+						<td>{{ a.submitted_date.strftime('%Y-%m-%d') }}</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="4" class="text-center">None</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="card p-3 mt-3">
+	<h6>Finance ({{ fund.year if fund else 'N/A' }})</h6>
+	<div>Budget: ₹{{ fund.budget_amount if fund else 0 }} | Allocated: ₹{{ fund.allocated_amount if fund else 0 }} | Balance: ₹{{ fund.balance_amount if fund else 0 }}</div>
+</div>
+<script>
+const byCategory = {{ by_category|tojson }};
+const byDept = {{ by_department|tojson }};
+new Chart(document.getElementById('pie'), { type:'pie', data:{ labels:Object.keys(byCategory), datasets:[{ data:Object.values(byCategory) }] } });
+new Chart(document.getElementById('bar'), { type:'bar', data:{ labels:Object.keys(byDept), datasets:[{ data:Object.values(byDept), label:'Applications' }] } });
+</script>
+{% endblock %}

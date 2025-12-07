@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h3>Student Dashboard</h3>
+	<div>
+		<a class="btn btn-outline-light" href="/student/scholarships">Browse Scholarships</a>
+		<a class="btn btn-outline-light" href="/student/profile">Edit Profile</a>
+	</div>
+</div>
+<div class="card p-3">
+	<h5 class="mb-3">Your Applications</h5>
+	<table class="table table-sm align-middle">
+		<thead><tr><th>ID</th><th>Scholarship</th><th>Status</th><th>Submitted</th><th>Remarks</th></tr></thead>
+		<tbody>
+			{% for a in applications %}
+			<tr>
+				<td>{{ a.application_id }}</td>
+				<td>{{ a.scholarship.name }}</td>
+				<td>
+					<span class="badge text-bg-{% if a.status=='approved' %}success{% elif a.status=='rejected' %}danger{% else %}secondary{% endif %}">{{ a.status|capitalize }}</span>
+				</td>
+				<td>{{ a.submitted_date.strftime('%Y-%m-%d') }}</td>
+				<td>{{ a.remarks or '-' }}</td>
+			</tr>
+			{% else %}
+			<tr><td colspan="5" class="text-center">No applications yet.</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
+
+
+

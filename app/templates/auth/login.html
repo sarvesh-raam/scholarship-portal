@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+	.auth-card { max-width: 520px; margin: 0 auto; border-radius: 20px; overflow: hidden; }
+	.auth-hero { background: linear-gradient(180deg, rgba(147,197,253,0.35) 0%, rgba(255,255,255,0) 100%); padding: 28px 24px 8px; text-align: center; }
+	.icon-pill { width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 8px; display:flex; align-items:center; justify-content:center; background: var(--glass-bg); border:1px solid var(--glass-border); box-shadow: 0 8px 18px rgba(0,0,0,.15); }
+	.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity:.85; }
+	.input-wrap { position: relative; }
+	.input-wrap .form-control { padding-left: 40px; height: 48px; color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; caret-color: var(--text); }
+	.input-wrap .form-control::placeholder { color: var(--muted); opacity:.9; }
+	/* WebKit autofill fix so text color stays visible */
+	.input-wrap .form-control:-webkit-autofill,
+	.input-wrap .form-control:-webkit-autofill:hover,
+	.input-wrap .form-control:-webkit-autofill:focus {
+		-webkit-text-fill-color: var(--text) !important;
+		transition: background-color 9999s ease-in-out 0s;
+	}
+	.input-wrap .toggle { position:absolute; right: 10px; top:50%; transform: translateY(-50%); background: transparent; border: none; color: var(--muted); }
+	.cta { height: 50px; border-radius: 14px; font-weight: 600; font-size: 16px; }
+</style>
+<div class="card p-0 auth-card">
+	<div class="auth-hero">
+		<div class="icon-pill">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+				<path d="M10 12h8m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		</div>
+		<h2 class="mb-1">Sign in with email</h2>
+		<p class="text-muted mb-3">Apply for scholarships, upload documents, and track approvals in one place.</p>
+	</div>
+	<div class="p-4 pt-3">
+		<form method="post">
+			<div class="mb-3 input-wrap">
+				<svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z" stroke="currentColor" stroke-width="2"/><path d="M7 9l5 4 5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<input class="form-control" type="email" name="email" placeholder="Email" required />
+			</div>
+			<div class="mb-1 input-wrap">
+				<svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 10a6 6 0 1 1 12 0v2" stroke="currentColor" stroke-width="2"/><rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M12 14v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<input id="password" class="form-control" type="password" name="password" placeholder="Password" required />
+				<button type="button" class="toggle" aria-label="Show password" onclick="togglePwd()">
+					<svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+					<svg id="eyeClosed" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2"/><path d="M2 12s4-7 10-7c2.2 0 4.13.8 5.75 1.93M22 12s-4 7-10 7c-2.2 0-4.13-.8-5.75-1.93" stroke="currentColor" stroke-width="2"/></svg>
+				</button>
+			</div>
+			<button class="btn btn-primary w-100 cta mt-3" type="submit">Get Started</button>
+		</form>
+	</div>
+</div>
+<script>
+function togglePwd(){
+	const input = document.getElementById('password');
+	const open = document.getElementById('eyeOpen');
+	const closed = document.getElementById('eyeClosed');
+	if(input.type === 'password'){ input.type='text'; open.style.display='none'; closed.style.display='inline'; }
+	else { input.type='password'; open.style.display='inline'; closed.style.display='none'; }
+}
+</script>
+{% endblock %}

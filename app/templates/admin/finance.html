@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h3 class="mb-3">Finance</h3>
+<div class="row g-3">
+	<div class="col-md-5">
+		<form method="post" class="card p-3">
+			<h6>Set Budget for Year</h6>
+			<div class="row g-2">
+				<div class="col-6"><input class="form-control" name="year" type="number" min="2000" max="2100" required /></div>
+				<div class="col-6"><input class="form-control" name="budget_amount" type="number" step="0.01" required placeholder="Budget" /></div>
+			</div>
+			<button class="btn btn-primary mt-2">Save</button>
+		</form>
+	</div>
+	<div class="col-md-7">
+		<div class="card p-3">
+			<h6>All Years</h6>
+			<table class="table table-sm">
+				<thead><tr><th>Year</th><th>Budget</th><th>Allocated</th><th>Balance</th></tr></thead>
+				<tbody>
+					{% for f in items %}
+					<tr>
+						<td>{{ f.year }}</td>
+						<td>₹{{ f.budget_amount }}</td>
+						<td>₹{{ f.allocated_amount }}</td>
+						<td>₹{{ f.balance_amount }}</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="4" class="text-center">No records</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+
+

@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h3 class="mb-0">Applications{% if status %} — {{ status|capitalize }}{% endif %}</h3>
+	<div>
+		<a class="btn btn-outline-light btn-sm" href="/admin/dashboard">Back to Dashboard</a>
+		<a class="btn btn-outline-light btn-sm" href="/admin/applications">All</a>
+		<a class="btn btn-outline-light btn-sm" href="/admin/applications?status=pending">Pending</a>
+		<a class="btn btn-outline-light btn-sm" href="/admin/applications?status=approved">Approved</a>
+		<a class="btn btn-outline-light btn-sm" href="/admin/applications?status=rejected">Rejected</a>
+	</div>
+</div>
+<div class="card p-3">
+	<table class="table table-sm align-middle text-white">
+		<thead><tr><th>ID</th><th>Student</th><th>Department</th><th>Scholarship</th><th>Status</th><th>CGPA</th><th>Income Proof</th><th>Govt ID</th><th>Actions</th></tr></thead>
+		<tbody>
+			{% for a in items %}
+			<tr>
+				<td>{{ a.application_id }}</td>
+				<td>{{ a.student.name }}</td>
+				<td>{{ a.student.department or '-' }}</td>
+				<td>{{ a.scholarship.name }}</td>
+				<td><span class="badge text-bg-{% if a.status=='approved' %}success{% elif a.status=='rejected' %}danger{% else %}secondary{% endif %}">{{ a.status|capitalize }}</span></td>
+				<td>{{ a.cgpa_value or '-' }}</td>
+				<td>
+					{% if a.income_proof_path %}
+						{% if a.income_proof_path|is_pdf %}
+							<a href="{{ a.income_proof_path|upload_url }}" target="_blank">PDF</a>
+						{% else %}
+							<img src="{{ a.income_proof_path|upload_url }}" style="height:48px" />
+						{% endif %}
+					{% else %}-{% endif %}
+				</td>
+				<td>
+					{% if a.govt_id_path %}
+						{% if a.govt_id_path|is_pdf %}
+							<a href="{{ a.govt_id_path|upload_url }}" target="_blank">PDF</a>
+						{% else %}
+							<img src="{{ a.govt_id_path|upload_url }}" style="height:48px" />
+						{% endif %}
+					{% else %}-{% endif %}
+				</td>
+				<td style="width:320px">
+					<form class="d-flex gap-2" method="post" action="/admin/applications/{{ a.application_id }}/decision">
+						<input class="form-control form-control-sm" name="remarks" placeholder="Remarks" value="{{ a.remarks or '' }}" />
+						<select class="form-select form-select-sm" name="status">
+							<option value="approved">Approve</option>
+							<option value="rejected">Reject</option>
+						</select>
+						<button class="btn btn-sm btn-primary">Save</button>
+					</form>
+				</td>
+			</tr>
+			{% else %}
+			<tr><td colspan="9" class="text-center">No applications{% if status %} in {{ status }}{% endif %}</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
