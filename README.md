@@ -143,5 +143,10 @@ seed.py
 - Database schema (DDL above)
 - Short report: abstract, modules, and conclusion (can be derived from README sections)
 
+- ## Team
+- **Sarvesh Raam** (@sarvesh-raam)
+- **Arunkumar C** (@arunkumarc05)
+
+
 
 
