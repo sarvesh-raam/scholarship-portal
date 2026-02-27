@@ -12,7 +12,11 @@ migrate = Migrate()
 
 
 def create_app():
-	app = Flask(__name__, instance_relative_config=True)
+	# Use absolute path for instance folders
+	base_dir = Path(__file__).resolve().parent.parent
+	instance_path = base_dir / 'instance'
+	
+	app = Flask(__name__, instance_path=str(instance_path), instance_relative_config=True)
 
 	# Default configuration
 	app.config.from_mapping(
