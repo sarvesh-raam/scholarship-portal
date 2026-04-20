@@ -8,7 +8,7 @@ From eligibility screening to automated budget tracking, this platform serves as
 ---
 
 ## Executive Summary
-This portal is designed to provide a single source of truth for student financial aid, applications, and payouts. It offers decision-ready insights into scholarship impact and features a zero-friction deployment optimized for production environments.
+This portal is designed to provide a single source of truth for student financial aid, applications, and payouts. It offers decision-ready insights into scholarship impact and features a zero-friction deployment optimized for production environments. Designed with scalability and modular architecture in mind.
 
 ## Deployment Proof
 Deployed and running in production on PythonAnywhere: [View Live Portal](https://scholarshipportal.pythonanywhere.com/)
@@ -20,6 +20,16 @@ The application follows a traditional Model-View-Controller (MVC) architectural 
 - **Backend Framework**: Python Flask handling routing, middleware, and business logic.
 - **Database**: SQLite (Development/Production) via SQLAlchemy ORM.
 - **Authentication**: Bcrypt for secure password hashing and Role-Based Access Control (RBAC).
+
+## API Design
+- REST endpoints for data processing
+- Structured request-response pipeline
+- Error handling and validation
+
+## System Design & Scale
+- Engineered to handle concurrent student application flows and automated eligibility checking.
+- Designed to scale to thousands of users (students and administrators) with isolated session management.
+- Dynamic budget recalibration happens at scale without degrading read-response times.
 
 ## Core Capabilities
 - **Admin Command Center**: Complete budget oversight, scheme creation, and application review processes.
