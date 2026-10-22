@@ -1,10 +1,12 @@
+import os
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from . import db
 from .models import Scholarship, Application
-from .utils import role_required, save_uploaded
+from .services import eligibility_error
+from .utils import role_required, save_uploaded, parse_float, has_upload, validate_upload
 
 student_bp = Blueprint("student", __name__, template_folder="templates")
 
@@ -33,7 +35,10 @@ def scholarships():
 		.order_by(Scholarship.end_date.asc())
 		.all()
 	)
-	return render_template("student/scholarships.html", items=items)
+	applied_ids = {
+		sid for (sid,) in db.session.query(Application.scholarship_id).filter_by(student_id=current_user.user_id)
+	}
+	return render_template("student/scholarships.html", items=items, applied_ids=applied_ids)
 
 
 @student_bp.post("/apply/<int:scholarship_id>")
@@ -44,29 +49,28 @@ def apply(scholarship_id: int):
 	if not sch:
 		flash("Scholarship not found", "danger")
 		return redirect(url_for("student.scholarships"))
-	# Prevent duplicate
-	existing = (
-		db.session.query(Application)
-		.filter_by(student_id=current_user.user_id, scholarship_id=scholarship_id)
-		.first()
-	)
-	if existing:
-		flash("You have already applied.", "warning")
+
+	income_file = request.files.get("income_proof")
+	govt_id_file = request.files.get("govt_id")
+	try:
+		cgpa_value = parse_float(request.form.get("cgpa"), "CGPA", 0, 10)
+		if not (has_upload(income_file) and has_upload(govt_id_file)):
+			raise ValueError("Both income proof and government ID documents are required.")
+		validate_upload(income_file)
+		validate_upload(govt_id_file)
+	except ValueError as e:
+		flash(str(e), "danger")
 		return redirect(url_for("student.scholarships"))
 
-	cgpa_value = float(request.form.get("cgpa")) if request.form.get("cgpa") else None
-	income_path = save_uploaded(request.files.get("income_proof"), f"user_{current_user.user_id}") if request.files else ""
-	govt_id_path = save_uploaded(request.files.get("govt_id"), f"user_{current_user.user_id}") if request.files else ""
-
-	# Basic validation against scholarship thresholds
-	if sch.min_cgpa is not None and (cgpa_value or 0) < sch.min_cgpa:
-		flash("CGPA below required minimum.", "danger")
+	# Validate eligibility before writing any files to disk
+	error = eligibility_error(current_user, sch, cgpa_value)
+	if error:
+		flash(error, "warning" if error == "You have already applied." else "danger")
 		return redirect(url_for("student.scholarships"))
-	# Only block on income if the student's profile has a value set
-	if sch.income_limit is not None and current_user.family_income is not None:
-		if float(current_user.family_income) > float(sch.income_limit):
-			flash("Family income exceeds limit.", "danger")
-			return redirect(url_for("student.scholarships"))
+
+	subdir = f"user_{current_user.user_id}"
+	income_path = save_uploaded(income_file, subdir)
+	govt_id_path = save_uploaded(govt_id_file, subdir)
 
 	app = Application(
 		student_id=current_user.user_id,
@@ -76,7 +80,18 @@ def apply(scholarship_id: int):
 		govt_id_path=govt_id_path,
 	)
 	db.session.add(app)
-	db.session.commit()
+	try:
+		db.session.commit()
+	except IntegrityError:
+		# Double submit: the unique constraint caught a duplicate application
+		db.session.rollback()
+		for rel in (income_path, govt_id_path):
+			try:
+				os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], rel))
+			except OSError:
+				pass
+		flash("You have already applied.", "warning")
+		return redirect(url_for("student.scholarships"))
 	flash("Application submitted.", "success")
 	return redirect(url_for("student.dashboard"))
 
@@ -92,12 +107,20 @@ def profile():
 @login_required
 @role_required("student")
 def profile_post():
-	current_user.name = request.form.get("name", current_user.name)
-	current_user.department = request.form.get("department")
-	cgpa = request.form.get("cgpa")
-	income = request.form.get("family_income")
-	current_user.cgpa = float(cgpa) if cgpa else current_user.cgpa
-	current_user.family_income = float(income) if income else current_user.family_income
+	name = request.form.get("name", "").strip()
+	try:
+		cgpa = parse_float(request.form.get("cgpa"), "CGPA", 0, 10)
+		income = parse_float(request.form.get("family_income"), "Family income", 0)
+	except ValueError as e:
+		flash(str(e), "danger")
+		return redirect(url_for("student.profile"))
+	if name:
+		current_user.name = name
+	current_user.department = request.form.get("department", "").strip() or None
+	if cgpa is not None:
+		current_user.cgpa = cgpa
+	if income is not None:
+		current_user.family_income = income
 	db.session.commit()
 	flash("Profile updated", "success")
 	return redirect(url_for("student.profile"))

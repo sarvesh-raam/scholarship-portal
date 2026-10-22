@@ -2,10 +2,11 @@
 {% block content %}
 <h3 class="mb-3">Your Profile</h3>
 <form method="post" class="card p-3">
+	<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 	<div class="row g-3">
 		<div class="col-md-6">
 			<label class="form-label">Name</label>
-			<input class="form-control" name="name" value="{{ current_user.name }}" />
+			<input class="form-control" name="name" value="{{ current_user.name }}" required />
 		</div>
 		<div class="col-md-6">
 			<label class="form-label">Department</label>
@@ -13,11 +14,11 @@
 		</div>
 		<div class="col-md-6">
 			<label class="form-label">CGPA</label>
-			<input class="form-control" type="number" step="0.01" min="0" max="10" name="cgpa" value="{{ current_user.cgpa or '' }}" />
+			<input class="form-control" type="number" step="0.01" min="0" max="10" name="cgpa" value="{{ current_user.cgpa if current_user.cgpa is not none else '' }}" />
 		</div>
 		<div class="col-md-6">
-			<label class="form-label">Family Income</label>
-			<input class="form-control" type="number" step="0.01" min="0" name="family_income" value="{{ current_user.family_income or '' }}" />
+			<label class="form-label">Annual Family Income (₹)</label>
+			<input class="form-control" type="number" step="0.01" min="0" name="family_income" value="{{ current_user.family_income if current_user.family_income is not none else '' }}" />
 		</div>
 	</div>
 	<button class="btn btn-primary mt-3">Save</button>

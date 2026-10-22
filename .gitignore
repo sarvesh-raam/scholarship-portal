@@ -27,7 +27,7 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
-#  常用来将Python脚本打包成独立的可执行程序
+#  Usually these files are written by a python script from a template
 *.manifest
 *.spec
 
@@ -111,3 +111,7 @@ cython_debug/
 .idea/
 *.swp
 *.swo
+
+# Local data: database, uploaded student documents and the generated secret key
+instance/
+*.db

@@ -3,7 +3,7 @@ from typing import Optional
 from . import db, login_manager
 from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, ForeignKey, Date, DateTime, Text, Float, CheckConstraint
+from sqlalchemy import String, Integer, ForeignKey, Date, DateTime, Text, Float, CheckConstraint, UniqueConstraint
 
 
 class User(db.Model, UserMixin):
@@ -31,7 +31,10 @@ class User(db.Model, UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id: str) -> Optional["User"]:
-	return db.session.get(User, int(user_id))
+	try:
+		return db.session.get(User, int(user_id))
+	except (TypeError, ValueError):
+		return None
 
 
 class Scholarship(db.Model):
@@ -61,7 +64,7 @@ class Application(db.Model):
 		ForeignKey("scholarships.scholarship_id", ondelete="CASCADE"), nullable=False
 	)
 	status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
-	submitted_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+	submitted_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 	reviewed_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.user_id"))
 	remarks: Mapped[Optional[str]] = mapped_column(Text)
 	income_proof_path: Mapped[Optional[str]] = mapped_column(String(255))
@@ -74,6 +77,7 @@ class Application(db.Model):
 
 	__table_args__ = (
 		CheckConstraint("cgpa_value IS NULL OR (cgpa_value >= 0 AND cgpa_value <= 10)", name="ck_cgpa_range"),
+		UniqueConstraint("student_id", "scholarship_id", name="uq_student_scholarship"),
 	)
 
 
@@ -87,4 +91,7 @@ class Finance(db.Model):
 	balance_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
 
 	def recalc(self) -> None:
-		self.balance_amount = max(0.0, float(self.budget_amount) - float(self.allocated_amount))
+		self.balance_amount = float(self.budget_amount or 0) - float(self.allocated_amount or 0)
+
+	def can_allocate(self, amount: float) -> bool:
+		return float(self.budget_amount or 0) - float(self.allocated_amount or 0) >= float(amount)
