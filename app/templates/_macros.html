@@ -5,11 +5,11 @@
 		{% else %}
 			<a href="{{ path|upload_url }}" target="_blank" rel="noopener"><img src="{{ path|upload_url }}" class="doc-thumb" alt="Uploaded document" loading="lazy" /></a>
 		{% endif %}
-	{% else %}-{% endif %}
+	{% else %}<span class="text-muted">—</span>{% endif %}
 {% endmacro %}
 
 {% macro status_badge(status) %}
-	<span class="badge text-bg-{% if status=='approved' %}success{% elif status=='rejected' %}danger{% else %}secondary{% endif %}">{{ status|capitalize }}</span>
+	<span class="status status-{{ status }}">{{ status|capitalize }}</span>
 {% endmacro %}
 
 {% macro decision_form(a, next=None, filter=None) %}
@@ -18,7 +18,7 @@
 		{% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
 		{% if filter %}<input type="hidden" name="filter" value="{{ filter }}" />{% endif %}
 		<input class="form-control form-control-sm" name="remarks" placeholder="Remarks" maxlength="500" aria-label="Remarks" />
-		<select class="form-select form-select-sm" name="status" aria-label="Decision">
+		<select class="form-select form-select-sm" name="status" aria-label="Decision" style="max-width:110px">
 			<option value="approved">Approve</option>
 			<option value="rejected">Reject</option>
 		</select>

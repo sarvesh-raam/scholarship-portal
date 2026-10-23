@@ -1,143 +1,155 @@
 {% extends 'layout.html' %}
 {% from '_macros.html' import doc_link, decision_form %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-2">
-	<h3 class="mb-0">Admin Dashboard</h3>
-	<a class="btn btn-primary" href="{{ url_for('admin.scholarships_list') }}">Add Scholarship</a>
-</div>
-<div class="row g-3" id="kpi-cards">
-	<div class="col-md-3">
-		<a href="{{ url_for('admin.students') }}" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
-			<div class="fs-1">{{ total_students }}</div>
-			<div class="text-muted">Students</div>
-		</a>
+<style>
+	.stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+	.stats a { padding: 18px 20px; color: var(--ink); text-decoration: none; border-left: 1px solid var(--rule); }
+	.stats a:first-child { border-left: 0; }
+	.stats a:hover { background: var(--paper); }
+	.stats .value { font-family: var(--serif); font-size: 34px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+	.stats .label { color: var(--muted); font-size: 13px; }
+	.stats .pending .value { color: var(--wait); }
+	@media (max-width: 640px) {
+		.stats { grid-template-columns: repeat(2, 1fr); }
+		.stats a:nth-child(3) { border-left: 0; }
+		.stats a:nth-child(n+3) { border-top: 1px solid var(--rule); }
+	}
+	.chart-box { position: relative; height: 260px; }
+	.budget-figures { display: flex; gap: 32px; flex-wrap: wrap; }
+	.budget-figures div { font-size: 13px; color: var(--muted); }
+	.budget-figures strong { display: block; font-size: 18px; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+</style>
+<div class="page-head">
+	<div>
+		<h1>Dashboard</h1>
+		<p>Applications waiting for review, and this year's budget.</p>
 	</div>
-	<div class="col-md-3">
-		<a href="{{ url_for('admin.applications', status='pending') }}" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
-			<div class="fs-1">{{ pending }}</div>
-			<div class="text-muted">Pending</div>
-		</a>
-	</div>
-	<div class="col-md-3">
-		<a href="{{ url_for('admin.applications', status='approved') }}" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
-			<div class="fs-1">{{ approved }}</div>
-			<div class="text-muted">Approved</div>
-		</a>
-	</div>
-	<div class="col-md-3">
-		<a href="{{ url_for('admin.applications', status='rejected') }}" class="card p-3 text-center w-100" style="text-decoration:none;color:inherit">
-			<div class="fs-1">{{ rejected }}</div>
-			<div class="text-muted">Rejected</div>
-		</a>
-	</div>
+	<a class="btn btn-primary" href="{{ url_for('admin.scholarships_list') }}">Add scholarship</a>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mt-3 mb-1">
-	<h6 class="mb-0">Pending Applications (Quick Actions)</h6>
-	<a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.applications') }}">Open All</a>
+<div class="card stats mb-4" id="kpi-cards">
+	<a href="{{ url_for('admin.students') }}"><div class="value">{{ total_students }}</div><div class="label">Students registered</div></a>
+	<a href="{{ url_for('admin.applications', status='pending') }}" class="pending"><div class="value">{{ pending }}</div><div class="label">Awaiting review</div></a>
+	<a href="{{ url_for('admin.applications', status='approved') }}"><div class="value">{{ approved }}</div><div class="label">Approved</div></a>
+	<a href="{{ url_for('admin.applications', status='rejected') }}"><div class="value">{{ rejected }}</div><div class="label">Rejected</div></a>
 </div>
-<div class="card p-3 mb-3">
+
+<div class="card p-3 mb-4">
+	<div class="panel-head">
+		<h2 class="panel-title">Awaiting review</h2>
+		<a class="small" href="{{ url_for('admin.applications') }}">All applications →</a>
+	</div>
 	<div class="table-responsive">
-	<table class="table table-sm align-middle mb-0">
-		<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>CGPA</th><th>Income Proof</th><th>Govt ID</th><th>Decide</th></tr></thead>
+	<table class="table align-middle">
+		<thead><tr><th>#</th><th>Student</th><th>Scholarship</th><th class="num">CGPA</th><th>Income proof</th><th>Govt ID</th><th>Decision</th></tr></thead>
 		<tbody>
 			{% for a in pending_items %}
 			<tr>
-				<td>{{ a.application_id }}</td>
+				<td class="text-muted">{{ a.application_id }}</td>
 				<td>{{ a.student.name }}</td>
 				<td>{{ a.scholarship.name }}</td>
-				<td>{{ a.cgpa_value if a.cgpa_value is not none else '-' }}</td>
+				<td class="num">{{ a.cgpa_value if a.cgpa_value is not none else '—' }}</td>
 				<td>{{ doc_link(a.income_proof_path) }}</td>
 				<td>{{ doc_link(a.govt_id_path) }}</td>
 				<td style="min-width:320px">{{ decision_form(a, next='dashboard') }}</td>
 			</tr>
 			{% else %}
-			<tr><td colspan="7" class="text-center">No pending applications</td></tr>
+			<tr><td colspan="7" class="empty">Nothing waiting. New applications will show up here.</td></tr>
 			{% endfor %}
 		</tbody>
 	</table>
 	</div>
 </div>
-<div class="row g-3 mt-1">
-	<div class="col-md-6">
-		<div class="card p-3">
-			<h6>Scholarship Type Distribution</h6>
-			{% if by_category %}<canvas id="pie"></canvas>{% else %}<div class="text-muted small">No scholarships yet.</div>{% endif %}
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="card p-3">
-			<h6>Applications per Department</h6>
-			{% if by_department %}<canvas id="bar"></canvas>{% else %}<div class="text-muted small">No applications yet.</div>{% endif %}
-		</div>
-	</div>
-</div>
-<div class="row g-3 mt-1">
-	<div class="col-md-6">
-		<div class="card p-3">
-			<h6>Recently Approved</h6>
-			<table class="table table-sm mb-0">
-				<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>Date</th></tr></thead>
-				<tbody>
-					{% for a in approved_items %}
-					<tr>
-						<td>{{ a.application_id }}</td>
-						<td>{{ a.student.name }}</td>
-						<td>{{ a.scholarship.name }}</td>
-						<td>{{ a.submitted_date.strftime('%Y-%m-%d') }}</td>
-					</tr>
-					{% else %}
-					<tr><td colspan="4" class="text-center">None</td></tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="card p-3">
-			<h6>Recently Rejected</h6>
-			<table class="table table-sm mb-0">
-				<thead><tr><th>ID</th><th>Student</th><th>Scholarship</th><th>Date</th></tr></thead>
-				<tbody>
-					{% for a in rejected_items %}
-					<tr>
-						<td>{{ a.application_id }}</td>
-						<td>{{ a.student.name }}</td>
-						<td>{{ a.scholarship.name }}</td>
-						<td>{{ a.submitted_date.strftime('%Y-%m-%d') }}</td>
-					</tr>
-					{% else %}
-					<tr><td colspan="4" class="text-center">None</td></tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
-</div>
-<div class="card p-3 mt-3">
-	<div class="d-flex justify-content-between align-items-center">
-		<h6 class="mb-2">Finance ({{ fund.year if fund else 'not set for this year' }})</h6>
-		<a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.finance') }}">Manage</a>
+
+<div class="card p-3 mb-4">
+	<div class="panel-head">
+		<h2 class="panel-title">Budget {{ fund.year if fund else '' }}</h2>
+		<a class="small" href="{{ url_for('admin.finance') }}">Manage →</a>
 	</div>
 	{% if fund %}
 		{% set used = (fund.allocated_amount / fund.budget_amount * 100) if fund.budget_amount else 0 %}
-		<div>Budget: ₹{{ '{:,.0f}'.format(fund.budget_amount) }} | Allocated: ₹{{ '{:,.0f}'.format(fund.allocated_amount) }} | Balance: ₹{{ '{:,.0f}'.format(fund.balance_amount) }}</div>
-		<div class="progress mt-2" role="progressbar" aria-label="Budget used" aria-valuenow="{{ used|round|int }}" aria-valuemin="0" aria-valuemax="100" style="height:8px">
+		<div class="budget-figures mb-3">
+			<div><strong>₹{{ '{:,.0f}'.format(fund.budget_amount) }}</strong>Total budget</div>
+			<div><strong>₹{{ '{:,.0f}'.format(fund.allocated_amount) }}</strong>Allocated</div>
+			<div><strong>₹{{ '{:,.0f}'.format(fund.balance_amount) }}</strong>Remaining</div>
+			<div><strong>{{ used|round(1) }}%</strong>Used</div>
+		</div>
+		<div class="progress" role="progressbar" aria-label="Budget used" aria-valuenow="{{ used|round|int }}" aria-valuemin="0" aria-valuemax="100" style="height:8px">
 			<div class="progress-bar" style="width: {{ [used, 100]|min }}%"></div>
 		</div>
 	{% else %}
-		<div class="text-muted">No budget set for the current year — approvals are blocked until one is added.</div>
+		<p class="mb-0">No budget has been set for this year. Approvals are blocked until you <a href="{{ url_for('admin.finance') }}">add one</a>.</p>
 	{% endif %}
+</div>
+
+<div class="row g-4 mb-4">
+	<div class="col-md-6">
+		<div class="card p-3 h-100">
+			<h2 class="panel-title">Scholarships by category</h2>
+			{% if by_category %}<div class="chart-box"><canvas id="pie"></canvas></div>{% else %}<p class="text-muted small mb-0">No scholarships yet.</p>{% endif %}
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card p-3 h-100">
+			<h2 class="panel-title">Applications by department</h2>
+			{% if by_department %}<div class="chart-box"><canvas id="bar"></canvas></div>{% else %}<p class="text-muted small mb-0">No applications yet.</p>{% endif %}
+		</div>
+	</div>
+</div>
+
+<div class="row g-4">
+	{% for title, rows in [('Recently approved', approved_items), ('Recently rejected', rejected_items)] %}
+	<div class="col-md-6">
+		<div class="card p-3 h-100">
+			<h2 class="panel-title">{{ title }}</h2>
+			<table class="table">
+				<thead><tr><th>#</th><th>Student</th><th>Scholarship</th><th class="num">Submitted</th></tr></thead>
+				<tbody>
+					{% for a in rows %}
+					<tr>
+						<td class="text-muted">{{ a.application_id }}</td>
+						<td>{{ a.student.name }}</td>
+						<td>{{ a.scholarship.name }}</td>
+						<td class="num">{{ a.submitted_date.strftime('%d %b %Y') }}</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="4" class="empty">None yet</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{% endfor %}
 </div>
 <script>
 const byCategory = {{ by_category|tojson }};
 const byDept = {{ by_department|tojson }};
 if (window.Chart) {
-	Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
-	const pie = document.getElementById('pie');
-	const bar = document.getElementById('bar');
-	if (pie) new Chart(pie, { type:'pie', data:{ labels:Object.keys(byCategory), datasets:[{ data:Object.values(byCategory) }] } });
-	if (bar) new Chart(bar, { type:'bar', data:{ labels:Object.keys(byDept), datasets:[{ data:Object.values(byDept), label:'Applications' }] }, options:{ scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } } });
+	const charts = [];
+	function draw() {
+		charts.forEach(c => c.destroy());
+		charts.length = 0;
+		const css = getComputedStyle(document.documentElement);
+		const v = name => css.getPropertyValue(name).trim();
+		const palette = [v('--accent'), '#c48a2c', '#4a7396', '#a4473b', '#7a6a9c', '#7f8f4e'];
+		Chart.defaults.color = v('--muted');
+		Chart.defaults.font.family = v('--sans');
+		Chart.defaults.borderColor = v('--rule');
+		const pie = document.getElementById('pie');
+		const bar = document.getElementById('bar');
+		if (pie) charts.push(new Chart(pie, {
+			type: 'doughnut',
+			data: { labels: Object.keys(byCategory).map(k => k.charAt(0).toUpperCase() + k.slice(1)), datasets: [{ data: Object.values(byCategory), backgroundColor: palette, borderColor: v('--surface'), borderWidth: 2 }] },
+			options: { maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10 } } } }
+		}));
+		if (bar) charts.push(new Chart(bar, {
+			type: 'bar',
+			data: { labels: Object.keys(byDept), datasets: [{ data: Object.values(byDept), label: 'Applications', backgroundColor: v('--accent'), borderRadius: 2, maxBarThickness: 36 }] },
+			options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } }
+		}));
+	}
+	draw();
+	document.addEventListener('themechange', draw);
 }
 </script>
 {% endblock %}

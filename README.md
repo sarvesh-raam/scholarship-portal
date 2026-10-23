@@ -2,7 +2,7 @@
 
 From eligibility screening to automated budget tracking, this platform serves as a unified gateway for student financial aid management and oversight.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=flat-square&logo=render&logoColor=white)](https://scholarshipportal.pythonanywhere.com/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=flat-square&logo=render&logoColor=white)](https://sarveshraam.pythonanywhere.com/)
 [![Backend](https://img.shields.io/badge/Backend-Flask%20%2B%20SQLite-3776AB?style=flat-square&logo=python&logoColor=white)](#)
 
 ---
@@ -11,7 +11,7 @@ From eligibility screening to automated budget tracking, this platform serves as
 This portal is designed to provide a single source of truth for student financial aid, applications, and payouts. It offers decision-ready insights into scholarship impact and features a zero-friction deployment optimized for production environments. Designed with scalability and modular architecture in mind.
 
 ## Deployment Proof
-Deployed and running in production on PythonAnywhere: [View Live Portal](https://scholarshipportal.pythonanywhere.com/)
+Deployed and running in production on PythonAnywhere: [View Live Portal](https://sarveshraam.pythonanywhere.com/)
 
 ## Architecture and System Design
 The application follows a traditional Model-View-Controller (MVC) architectural pattern, clearly separating backend logic from frontend presentation.

@@ -1,49 +1,68 @@
 {% extends 'layout.html' %}
 {% block content %}
-<h3 class="mb-1">Available Scholarships</h3>
-{% if current_user.family_income is none or current_user.cgpa is none %}
-<p class="text-muted mb-3">Tip: complete your <a href="{{ url_for('student.profile') }}">profile</a> — scholarships with an income limit need your family income.</p>
-{% else %}
-<p class="text-muted mb-3">Upload your income proof and government ID (PDF, JPG or PNG, max 10 MB each).</p>
-{% endif %}
-<div class="row g-3">
+<style>
+	.scheme { display: flex; flex-direction: column; }
+	.scheme h2 { font-size: 20px; margin: 0; }
+	.scheme .amount { font-family: var(--serif); font-size: 22px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+	.scheme .category { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+	.facts { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; margin: 0 0 16px; padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+	.facts dt { font-weight: 400; color: var(--muted); display: inline; }
+	.facts dd { display: inline; margin: 0 0 0 4px; font-weight: 500; }
+	.scheme form .form-control { font-size: 13px; }
+</style>
+<div class="page-head">
+	<div>
+		<h1>Open scholarships</h1>
+		{% if current_user.family_income is none or current_user.cgpa is none %}
+		<p>Complete your <a href="{{ url_for('student.profile') }}">profile</a> first. Scholarships with an income limit need your family income.</p>
+		{% else %}
+		<p>Attach your income proof and a government ID (PDF, JPG or PNG, up to 10 MB each).</p>
+		{% endif %}
+	</div>
+</div>
+<div class="row g-4">
 	{% for s in items %}
-	<div class="col-md-6">
-		<div class="card p-3 h-100 d-flex flex-column">
-			<h5 class="mb-1">{{ s.name }}</h5>
-			<div class="small text-muted mb-2">Category: {{ s.category|capitalize }} | Amount: ₹{{ '{:,.0f}'.format(s.amount) }}</div>
-			<p class="mb-2">{{ s.eligibility }}</p>
-			<div class="d-flex justify-content-between flex-wrap gap-2 small mb-2">
-				<span>Ends: {{ s.end_date.strftime('%Y-%m-%d') }}</span>
-				<span>Min CGPA: {{ s.min_cgpa if s.min_cgpa is not none else '-' }}</span>
-				<span>Income limit: {{ '₹{:,.0f}'.format(s.income_limit) if s.income_limit is not none else '-' }}</span>
+	<div class="col-lg-6">
+		<article class="card p-4 h-100 scheme">
+			<div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+				<div>
+					<div class="category">{{ s.category|capitalize }}</div>
+					<h2>{{ s.name }}</h2>
+				</div>
+				<div class="amount">₹{{ '{:,.0f}'.format(s.amount) }}</div>
 			</div>
+			<p class="mb-3">{{ s.eligibility }}</p>
+			<dl class="facts">
+				<div><dt>Closes</dt><dd>{{ s.end_date.strftime('%d %b %Y') }}</dd></div>
+				<div><dt>Min CGPA</dt><dd>{{ s.min_cgpa if s.min_cgpa is not none else 'Any' }}</dd></div>
+				<div><dt>Income limit</dt><dd>{{ '₹{:,.0f}'.format(s.income_limit) if s.income_limit is not none else 'No limit' }}</dd></div>
+			</dl>
 			{% if s.scholarship_id in applied_ids %}
-				<div class="mt-auto"><span class="badge text-bg-info">Already applied</span> <a class="small" href="{{ url_for('student.dashboard') }}">View status</a></div>
+				<div class="mt-auto"><span class="status status-applied">Applied</span> <a class="small ms-2" href="{{ url_for('student.dashboard') }}">Check status</a></div>
 			{% else %}
 			<form method="post" action="{{ url_for('student.apply', scholarship_id=s.scholarship_id) }}" enctype="multipart/form-data" class="mt-auto">
 				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 				<div class="row g-2">
-					<div class="col-md-4">
-						<label class="form-label small mb-1" for="cgpa-{{ s.scholarship_id }}">CGPA</label>
-						<input id="cgpa-{{ s.scholarship_id }}" class="form-control" name="cgpa" placeholder="CGPA" type="number" step="0.01" min="0" max="10" value="{{ current_user.cgpa if current_user.cgpa is not none else '' }}" required />
+					<div class="col-sm-3">
+						<label class="form-label" for="cgpa-{{ s.scholarship_id }}">CGPA</label>
+						<input id="cgpa-{{ s.scholarship_id }}" class="form-control" name="cgpa" type="number" step="0.01" min="0" max="10" value="{{ current_user.cgpa if current_user.cgpa is not none else '' }}" required />
 					</div>
-					<div class="col-md-4">
-						<label class="form-label small mb-1" for="income-{{ s.scholarship_id }}">Income proof</label>
+					<div class="col-sm-9">
+						<label class="form-label" for="income-{{ s.scholarship_id }}">Income proof</label>
 						<input id="income-{{ s.scholarship_id }}" class="form-control" name="income_proof" type="file" accept=".pdf,.jpg,.jpeg,.png" required />
 					</div>
-					<div class="col-md-4">
-						<label class="form-label small mb-1" for="govt-{{ s.scholarship_id }}">Government ID</label>
+					<div class="col-sm-9 offset-sm-3">
+						<label class="form-label" for="govt-{{ s.scholarship_id }}">Government ID</label>
 						<input id="govt-{{ s.scholarship_id }}" class="form-control" name="govt_id" type="file" accept=".pdf,.jpg,.jpeg,.png" required />
 					</div>
 				</div>
-				<button class="btn btn-primary mt-2">Apply</button>
+				<button class="btn btn-primary mt-3">Submit application</button>
 			</form>
 			{% endif %}
-		</div>
+		</article>
 	</div>
 	{% else %}
-	<div class="col-12"><div class="card p-4 text-center">No active scholarships.</div></div>
+	<div class="col-12"><div class="card p-4 text-muted">No scholarships are open right now. Check back later.</div></div>
 	{% endfor %}
 </div>
 {% endblock %}

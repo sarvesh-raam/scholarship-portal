@@ -1,18 +1,37 @@
 {% extends 'layout.html' %}
 {% block content %}
-<div class="row">
-	<div class="col-lg-8 mx-auto">
+<style>
+	.intro { padding-top: 24px; padding-bottom: 8px; }
+	.intro h1 { font-size: 40px; line-height: 1.15; max-width: 20ch; margin-bottom: 16px; }
+	.intro .lede { font-size: 17px; color: var(--muted); max-width: 46ch; }
+	.steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+	.steps li { counter-increment: step; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+	.steps li:last-child { border-bottom: 0; }
+	.steps li::before { content: counter(step); font-family: var(--serif); font-weight: 600; font-size: 18px; color: var(--accent); }
+	.steps strong { display: block; font-weight: 600; }
+	.steps span { color: var(--muted); font-size: 14px; }
+	@media (max-width: 640px) { .intro h1 { font-size: 30px; } }
+</style>
+<div class="row g-4 gx-lg-5 align-items-start">
+	<div class="col-lg-6 intro">
+		<h1>Apply for college scholarships online</h1>
+		<p class="lede mb-4">Browse the schemes open this term, apply with your documents, and follow each application until the office makes a decision.</p>
+		<div class="d-flex gap-2 flex-wrap">
+			<a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create a student account</a>
+			<a href="{{ url_for('auth.login') }}" class="btn btn-ghost">Sign in</a>
+		</div>
+		<p class="small text-muted mt-4 mb-0">Staff members sign in with the account given to them by the aid office.</p>
+	</div>
+	<div class="col-lg-6">
 		<div class="card p-4">
-			<h2 class="mb-3">College Scholarships and Financial Aid</h2>
-			<p class="mb-4">Manage scholarship schemes, student applications, and fund allocation with a clean and simple interface.</p>
-			<div class="d-flex gap-2">
-				<a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-				<a href="{{ url_for('auth.register') }}" class="btn btn-outline-light">Register</a>
-			</div>
+			<h2 class="panel-title">How it works</h2>
+			<ol class="steps">
+				<li><div><strong>Register</strong><span>Use your college email address.</span></div></li>
+				<li><div><strong>Complete your profile</strong><span>Add your department, CGPA and annual family income.</span></div></li>
+				<li><div><strong>Apply</strong><span>Upload income proof and a government ID as PDF, JPG or PNG.</span></div></li>
+				<li><div><strong>Track the decision</strong><span>See whether it was approved or rejected, with the reviewer's remarks.</span></div></li>
+			</ol>
 		</div>
 	</div>
 </div>
 {% endblock %}
-
-
-

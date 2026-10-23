@@ -1,29 +1,32 @@
 {% extends 'layout.html' %}
 {% from '_macros.html' import doc_link, status_badge, decision_form %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-	<h3 class="mb-0">Applications{% if status %} — {{ status|capitalize }}{% endif %}</h3>
-	<div class="d-flex flex-wrap gap-1">
-		<a class="btn btn-outline-light btn-sm{% if not status %} active{% endif %}" href="{{ url_for('admin.applications') }}">All</a>
+<div class="page-head">
+	<div>
+		<h1>Applications</h1>
+		<p>{{ items|length }} {{ status if status else 'total' }}</p>
+	</div>
+	<div class="d-flex flex-wrap gap-1" role="group" aria-label="Filter by status">
+		<a class="btn btn-ghost btn-sm{% if not status %} active{% endif %}" href="{{ url_for('admin.applications') }}">All</a>
 		{% for s in ['pending', 'approved', 'rejected'] %}
-		<a class="btn btn-outline-light btn-sm{% if status == s %} active{% endif %}" href="{{ url_for('admin.applications', status=s) }}">{{ s|capitalize }}</a>
+		<a class="btn btn-ghost btn-sm{% if status == s %} active{% endif %}" href="{{ url_for('admin.applications', status=s) }}">{{ s|capitalize }}</a>
 		{% endfor %}
 	</div>
 </div>
 <div class="card p-3">
 	<div class="table-responsive">
-	<table class="table table-sm align-middle mb-0">
-		<thead><tr><th>ID</th><th>Student</th><th>Department</th><th>Scholarship</th><th>Amount</th><th>Status</th><th>CGPA</th><th>Income Proof</th><th>Govt ID</th><th>Decision</th></tr></thead>
+	<table class="table align-middle">
+		<thead><tr><th>#</th><th>Student</th><th>Department</th><th>Scholarship</th><th class="num">Amount</th><th>Status</th><th class="num">CGPA</th><th>Income proof</th><th>Govt ID</th><th>Decision</th></tr></thead>
 		<tbody>
 			{% for a in items %}
 			<tr>
-				<td>{{ a.application_id }}</td>
+				<td class="text-muted">{{ a.application_id }}</td>
 				<td>{{ a.student.name }}</td>
-				<td>{{ a.student.department or '-' }}</td>
+				<td>{{ a.student.department or '—' }}</td>
 				<td>{{ a.scholarship.name }}</td>
-				<td>₹{{ '{:,.0f}'.format(a.scholarship.amount) }}</td>
+				<td class="num">₹{{ '{:,.0f}'.format(a.scholarship.amount) }}</td>
 				<td>{{ status_badge(a.status) }}</td>
-				<td>{{ a.cgpa_value if a.cgpa_value is not none else '-' }}</td>
+				<td class="num">{{ a.cgpa_value if a.cgpa_value is not none else '—' }}</td>
 				<td>{{ doc_link(a.income_proof_path) }}</td>
 				<td>{{ doc_link(a.govt_id_path) }}</td>
 				<td style="min-width:320px">
@@ -37,7 +40,7 @@
 				</td>
 			</tr>
 			{% else %}
-			<tr><td colspan="10" class="text-center">No applications{% if status %} in {{ status }}{% endif %}</td></tr>
+			<tr><td colspan="10" class="empty">No applications{% if status %} marked {{ status }}{% endif %}.</td></tr>
 			{% endfor %}
 		</tbody>
 	</table>
