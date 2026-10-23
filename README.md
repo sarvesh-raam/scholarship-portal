@@ -2,7 +2,7 @@
 
 From eligibility screening to automated budget tracking, this platform serves as a unified gateway for student financial aid management and oversight.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=flat-square&logo=render&logoColor=white)](https://sarveshraam.pythonanywhere.com/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=flat-square&logo=pythonanywhere&logoColor=white)](https://sarveshraam.pythonanywhere.com/)
 [![Backend](https://img.shields.io/badge/Backend-Flask%20%2B%20SQLite-3776AB?style=flat-square&logo=python&logoColor=white)](#)
 
 ---
@@ -13,10 +13,21 @@ This portal is designed to provide a single source of truth for student financia
 ## Deployment Proof
 Deployed and running in production on PythonAnywhere: [View Live Portal](https://sarveshraam.pythonanywhere.com/)
 
+## Screenshots
+**Admin dashboard**: pending reviews, yearly budget and application breakdowns.
+
+![Admin dashboard](docs/screenshots/admin-dashboard.png)
+
+**Student view**: open scholarships with eligibility rules and the application form.
+
+![Open scholarships](docs/screenshots/student-scholarships.png)
+
+Both pages also have a dark theme and work on phone-sized screens.
+
 ## Architecture and System Design
 The application follows a traditional Model-View-Controller (MVC) architectural pattern, clearly separating backend logic from frontend presentation.
 
-- **Frontend**: HTML5, CSS3, and Jinja2 templating for dynamic rendering.
+- **Frontend**: Jinja2 templates with Bootstrap 5 for layout, a custom light/dark theme, and Chart.js for dashboard charts.
 - **Backend Framework**: Python Flask handling routing, middleware, and business logic.
 - **Database**: SQLite (Development/Production) via SQLAlchemy ORM.
 - **Authentication**: Bcrypt for secure password hashing and Role-Based Access Control (RBAC).
@@ -41,7 +52,6 @@ The application follows a traditional Model-View-Controller (MVC) architectural 
 ```text
 scholarship-portal/
 ├── app/
-│   ├── static/                  # Images
 │   ├── templates/               # Jinja2 HTML views (+ _macros.html, error.html)
 │   ├── __init__.py              # App factory, security config, error pages
 │   ├── models.py                # Database schema (ORM)
@@ -51,6 +61,7 @@ scholarship-portal/
 │   ├── routes_student.py        # Student pages
 │   └── routes_api.py            # JSON API
 ├── tests/                       # pytest suite
+├── docs/screenshots/            # README images
 ├── instance/                    # Local database, uploads, secret key (not committed)
 ├── wsgi.py                      # WSGI entry point (PythonAnywhere / gunicorn)
 ├── seed.py                      # Creates tables + demo data
@@ -104,7 +115,11 @@ python -m pytest tests
 4. **Web** tab → *Add a new web app* → *Manual configuration* → Python 3.11.
 5. Set **Virtualenv** to `/home/<username>/.virtualenvs/scholarship-venv`.
 6. Edit the **WSGI configuration file** and replace its contents with the snippet at the top of `wsgi.py` (set your own `SECRET_KEY`).
-7. Click **Reload**. Free web apps expire after three months — press **"Run until 3 months from today"** on the Web tab to keep the site online.
+7. Click **Reload**.
+
+Free web apps are disabled unless you log in at least once a month and press **"Run until 1 month from today"** on the Web tab.
+
+**Deploying updates**: push to GitHub, then in a PythonAnywhere Bash console run `cd ~/scholarship-portal && git pull`, and press **Reload** on the Web tab.
 
 ## Dataset & Metrics
 - **Core Entities**: Users (Admins/Students), Scholarships (Schemes), Applications, Finance Records.
